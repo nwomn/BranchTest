@@ -134,10 +134,12 @@ else
 fi
 
 # 安装 git sync 别名
-echo "  🔗 安装 git sync 命令..."
+echo "  🔗 安装 git 命令别名..."
 REPO_ROOT=$(git rev-parse --show-toplevel)
 git config alias.sync "!bash $REPO_ROOT/scripts/sync.sh"
-echo "  ✅ 已安装 git sync 命令（避免冲突的安全同步）"
+git config alias.switch-branch "!bash $REPO_ROOT/scripts/switch-branch.sh"
+echo "  ✅ git sync        - 安全同步（避免冲突）"
+echo "  ✅ git switch-branch - 安全切换分支"
 
 echo ""
 echo "===================================="
@@ -149,10 +151,9 @@ echo "  ✅ 所有文件夹都在本地，可以查看所有代码"
 echo "  ✅ git status 只显示 $MY_TEAM/ 的修改"
 echo "  ✅ git add . 只会添加 $MY_TEAM/ 的修改"
 echo ""
-echo "⭐ 同步远程更新的推荐方式："
-echo "  git sync    # 自动清理其他团队的本地修改，避免冲突"
-echo ""
-echo "  也可以用 git pull，但如果你意外修改了其他团队的文件可能会冲突"
+echo "⭐ 推荐使用的命令："
+echo "  git sync                  # 同步远程更新（避免冲突）"
+echo "  git switch-branch <分支>  # 安全切换分支"
 echo ""
 echo "如需重新配置团队，再次运行此脚本即可。"
 echo ""

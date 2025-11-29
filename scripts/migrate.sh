@@ -69,6 +69,10 @@ cp "$SOURCE_DIR/scripts/sync.sh" "$TARGET_DIR/scripts/"
 chmod +x "$TARGET_DIR/scripts/sync.sh"
 echo "   ✅ scripts/sync.sh"
 
+cp "$SOURCE_DIR/scripts/switch-branch.sh" "$TARGET_DIR/scripts/"
+chmod +x "$TARGET_DIR/scripts/switch-branch.sh"
+echo "   ✅ scripts/switch-branch.sh"
+
 echo "3️⃣  复制 Git Hook..."
 cp "$SOURCE_DIR/hooks/post-merge" "$TARGET_DIR/hooks/"
 chmod +x "$TARGET_DIR/hooks/post-merge"
@@ -92,6 +96,7 @@ echo ""
 echo "已复制的文件："
 echo "  📁 scripts/setup-team-tracking.sh"
 echo "  📁 scripts/sync.sh"
+echo "  📁 scripts/switch-branch.sh"
 echo "  📁 hooks/post-merge"
 if [ ! -f "$TARGET_DIR/.gitignore" ]; then
     echo "  📁 .gitignore"

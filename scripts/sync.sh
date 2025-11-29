@@ -30,12 +30,13 @@ if [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
     exit 1
 fi
 
-# 【关键】在 pull 之前，恢复其他团队文件夹到 HEAD 版本
-# 这样就不会产生冲突
+# 【关键修复】在 pull 之前，恢复其他团队文件夹到 HEAD 版本
 for team in "${TEAM_FOLDERS[@]}"; do
     if [ "$team" != "$MY_TEAM" ]; then
-        # 检查该文件夹是否有本地修改（包括 skip-worktree 的文件）
-        # 使用 git checkout 强制恢复到 HEAD
+        # 1. 先清除该文件夹所有文件的 skip-worktree 标记
+        find "$team" -type f -exec git update-index --no-skip-worktree {} \; 2>/dev/null || true
+
+        # 2. 强制恢复到 HEAD 版本（丢弃本地修改）
         git checkout HEAD -- "$team/" 2>/dev/null || true
     fi
 done

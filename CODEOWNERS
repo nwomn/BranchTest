@@ -1,0 +1,14 @@
+# 团队文件夹责任划分
+# 每个团队只负责自己的文件夹
+# PR 会自动指定对应团队的负责人审查
+
+# TeamA 文件夹
+/teamA/ @team-a-lead
+
+# TeamB 文件夹
+/teamB/ @team-b-lead
+
+# 根级配置文件由管理员负责
+/CODEOWNERS @repo-admin
+/.gitignore @repo-admin
+/README.md @repo-admin

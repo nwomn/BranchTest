@@ -11,7 +11,7 @@
 3. [前提条件](#3-前提条件-prerequisites)
 4. [初次配置](#4-初次配置-first-time-setup)
 5. [日常操作](#5-日常操作-daily-workflow)
-6. [分支操作](#6-分支操作-working-with-branches)
+6. [关于分支](#6-关于分支-about-branches)
 7. [特殊情况处理](#7-特殊情况处理-special-cases)
 8. [命令速查表](#8-命令速查表-command-cheat-sheet)
 9. [常见问题 FAQ](#9-常见问题-faq)
@@ -79,7 +79,7 @@ git push
 | 操作 | 命令 |
 |------|------|
 | 同步代码 | `git sync` |
-| 切换分支 | `git switch-branch <分支名>` |
+| 提交推送 | `git add .` → `git commit -m "..."` → `git push` |
 | 重新配置 | `bash scripts/setup-team-tracking.sh` |
 
 ---
@@ -251,61 +251,22 @@ flowchart TD
 
 ---
 
-## 6. 分支操作 (Working with Branches)
+## 6. 关于分支 (About Branches)
 
-### 什么时候需要用分支？
+> ⚠️ **当前项目暂时不使用分支，所有工作直接在 main 分支上提交。**
 
-当你要开发一个新功能或修复一个 bug 时，建议创建一个新分支，这样不会影响主分支（main）的代码。
+这样做是为了保持简单。每个团队只修改自己的文件夹，不会互相冲突，所以不需要分支来隔离工作。
 
-### 创建功能分支
-
+**日常流程就是**：
 ```bash
-git checkout -b feature/新功能名称
+git sync          # 同步最新代码
+# 修改你的文件
+git add .
+git commit -m "说明"
+git push          # 直接推送到 main
 ```
 
-例如：
-```bash
-git checkout -b feature/user-login
-```
-
-### 在分支上工作
-
-正常修改、提交即可，流程和之前一样。
-
-### 切换分支
-
-使用我们的自定义命令（会自动处理其他团队的文件）：
-
-```bash
-git switch-branch main
-```
-
-或者切换到其他分支：
-```bash
-git switch-branch feature/user-login
-```
-
-### 推送分支到远程
-
-第一次推送新分支时：
-
-```bash
-git push -u origin feature/user-login
-```
-
-之后就可以直接用 `git push`。
-
-### 分支工作流程图
-
-```mermaid
-flowchart TD
-    A[main 分支] --> B[创建新分支]
-    B --> C[在分支上开发]
-    C --> D[提交修改]
-    D --> E[推送分支]
-    E --> F[创建 Pull Request]
-    F --> G[合并到 main]
-```
+如果以后需要使用分支，管理员会另行通知。
 
 ---
 
@@ -330,8 +291,6 @@ flowchart TD
 | 添加修改 | `git add .` |
 | 提交修改 | `git commit -m "说明"` |
 | 推送到远程 | `git push` |
-| 切换分支 | `git switch-branch <分支名>` |
-| 创建新分支 | `git checkout -b <分支名>` |
 | 重新配置团队 | `bash scripts/setup-team-tracking.sh` |
 
 ---

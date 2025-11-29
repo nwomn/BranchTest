@@ -27,7 +27,11 @@ if [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
 fi
 
 # 清除所有 skip-worktree 标记
-git ls-files -v | grep ^S | cut -c3- | xargs -r git update-index --no-skip-worktree 2>/dev/null || true
+# 跨平台兼容：不使用 -r 选项，通过 if 判断处理空输入
+SKIP_FILES=$(git ls-files -v | grep ^S | cut -c3-)
+if [ -n "$SKIP_FILES" ]; then
+    echo "$SKIP_FILES" | xargs git update-index --no-skip-worktree 2>/dev/null || true
+fi
 
 # 重新标记其他团队的文件夹
 for team in "${TEAM_FOLDERS[@]}"; do

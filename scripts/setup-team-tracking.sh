@@ -52,7 +52,11 @@ echo ""
 # 首先清除所有 skip-worktree 标记
 echo "正在配置 Git 追踪设置..."
 echo "  🔄 清除之前的配置..."
-git ls-files -v | grep ^S | cut -c3- | xargs -r git update-index --no-skip-worktree 2>/dev/null || true
+# 跨平台兼容：不使用 -r 选项，通过 if 判断处理空输入
+SKIP_FILES=$(git ls-files -v | grep ^S | cut -c3-)
+if [ -n "$SKIP_FILES" ]; then
+    echo "$SKIP_FILES" | xargs git update-index --no-skip-worktree 2>/dev/null || true
+fi
 
 # 对其他团队文件夹设置 skip-worktree
 for team in "${TEAM_FOLDERS[@]}"; do

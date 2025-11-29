@@ -49,8 +49,12 @@ echo ""
 echo "✅ 你选择了：$MY_TEAM"
 echo ""
 
-# 对其他团队文件夹设置 skip-worktree
+# 首先清除所有 skip-worktree 标记
 echo "正在配置 Git 追踪设置..."
+echo "  🔄 清除之前的配置..."
+git ls-files -v | grep ^S | cut -c3- | xargs -r git update-index --no-skip-worktree 2>/dev/null || true
+
+# 对其他团队文件夹设置 skip-worktree
 for team in "${TEAM_FOLDERS[@]}"; do
     if [ "$team" != "$MY_TEAM" ]; then
         echo "  🔒 忽略追踪：$team/"

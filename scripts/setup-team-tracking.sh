@@ -85,6 +85,12 @@ else
     echo "  ⚠️  警告：未找到 hooks/post-merge 模板文件"
 fi
 
+# 安装 git sync 别名
+echo "  🔗 安装 git sync 命令..."
+REPO_ROOT=$(git rev-parse --show-toplevel)
+git config alias.sync "!bash $REPO_ROOT/scripts/sync.sh"
+echo "  ✅ 已安装 git sync 命令（避免冲突的安全同步）"
+
 echo ""
 echo "===================================="
 echo "  ✅ 配置完成！"
@@ -92,13 +98,13 @@ echo "===================================="
 echo ""
 echo "现在的效果："
 echo "  ✅ 所有文件夹都在本地，可以查看所有代码"
-echo "  ✅ git pull 会拉取所有文件夹的更新"
 echo "  ✅ git status 只显示 $MY_TEAM/ 的修改"
 echo "  ✅ git add . 只会添加 $MY_TEAM/ 的修改"
-echo "  ✅ 每次 git pull 后自动重新配置（无需手动运行）"
 echo ""
-echo "如需修改其他团队的代码，请使用："
-echo "  git update-index --no-skip-worktree <文件路径>"
+echo "⭐ 同步远程更新的推荐方式："
+echo "  git sync    # 自动清理其他团队的本地修改，避免冲突"
+echo ""
+echo "  也可以用 git pull，但如果你意外修改了其他团队的文件可能会冲突"
 echo ""
 echo "如需重新配置团队，再次运行此脚本即可。"
 echo ""

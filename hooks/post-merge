@@ -17,13 +17,42 @@ if [ -z "$MY_TEAM" ]; then
     exit 0
 fi
 
-echo "🔄 检测到 git pull，自动重新配置团队追踪..."
-
 # 获取所有团队文件夹
 TEAM_FOLDERS=($(ls -d */ 2>/dev/null | grep "^team" | sed 's|/||'))
 
 if [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
     exit 0
+fi
+
+# 【新增】检查并自动解决合并冲突
+if [ -f .git/MERGE_HEAD ]; then
+    echo "⚠️  检测到冲突，自动解决..."
+
+    # 对不是本团队的文件夹，使用远程版本覆盖
+    for team in "${TEAM_FOLDERS[@]}"; do
+        if [ "$team" != "$MY_TEAM" ]; then
+            # 检查该团队文件夹是否有冲突文件
+            CONFLICT_FILES=$(git diff --name-only --diff-filter=U 2>/dev/null | grep "^$team/")
+
+            if [ -n "$CONFLICT_FILES" ]; then
+                # 使用远程版本覆盖本地修改
+                echo "$CONFLICT_FILES" | while read file; do
+                    git checkout --theirs "$file" 2>/dev/null || true
+                    git add "$file" 2>/dev/null || true
+                done
+            fi
+        fi
+    done
+
+    # 检查是否所有冲突都已解决
+    REMAINING_CONFLICTS=$(git diff --name-only --diff-filter=U 2>/dev/null)
+    if [ -z "$REMAINING_CONFLICTS" ]; then
+        echo "✅ 冲突已自动解决"
+        # 自动提交合并结果
+        git commit --no-edit 2>/dev/null || true
+    else
+        echo "⚠️  部分冲突需要手动解决"
+    fi
 fi
 
 # 清除所有 skip-worktree 标记
@@ -40,4 +69,4 @@ for team in "${TEAM_FOLDERS[@]}"; do
     fi
 done
 
-echo "✅ 已重新配置，当前追踪：$MY_TEAM/"
+echo "✅ 同步完成"

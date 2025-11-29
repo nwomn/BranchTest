@@ -64,6 +64,23 @@ for team in "${TEAM_FOLDERS[@]}"; do
     fi
 done
 
+# 保存团队配置
+echo "  💾 保存团队配置..."
+echo "$MY_TEAM" > .git/team-config
+
+# 安装 post-merge hook（自动化）
+echo "  🪝 安装自动化 Git Hook..."
+HOOK_SOURCE="hooks/post-merge"
+HOOK_TARGET=".git/hooks/post-merge"
+
+if [ -f "$HOOK_SOURCE" ]; then
+    cp "$HOOK_SOURCE" "$HOOK_TARGET"
+    chmod +x "$HOOK_TARGET"
+    echo "  ✅ 已安装 post-merge hook（git pull 后自动重新配置）"
+else
+    echo "  ⚠️  警告：未找到 hooks/post-merge 模板文件"
+fi
+
 echo ""
 echo "===================================="
 echo "  ✅ 配置完成！"
@@ -74,6 +91,7 @@ echo "  ✅ 所有文件夹都在本地，可以查看所有代码"
 echo "  ✅ git pull 会拉取所有文件夹的更新"
 echo "  ✅ git status 只显示 $MY_TEAM/ 的修改"
 echo "  ✅ git add . 只会添加 $MY_TEAM/ 的修改"
+echo "  ✅ 每次 git pull 后自动重新配置（无需手动运行）"
 echo ""
 echo "如需修改其他团队的代码，请使用："
 echo "  git update-index --no-skip-worktree <文件路径>"

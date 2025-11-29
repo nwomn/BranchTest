@@ -1,0 +1,39 @@
+#!/bin/bash
+# Git post-merge hook
+# 自动在 git pull 后重新标记团队文件夹
+
+# 检查是否有保存的团队配置
+TEAM_CONFIG=".git/team-config"
+
+if [ ! -f "$TEAM_CONFIG" ]; then
+    # 如果没有配置，静默退出
+    exit 0
+fi
+
+# 读取配置的团队
+MY_TEAM=$(cat "$TEAM_CONFIG")
+
+if [ -z "$MY_TEAM" ]; then
+    exit 0
+fi
+
+echo "🔄 检测到 git pull，自动重新配置团队追踪..."
+
+# 获取所有团队文件夹
+TEAM_FOLDERS=($(ls -d */ 2>/dev/null | grep "^team" | sed 's|/||'))
+
+if [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
+    exit 0
+fi
+
+# 清除所有 skip-worktree 标记
+git ls-files -v | grep ^S | cut -c3- | xargs -r git update-index --no-skip-worktree 2>/dev/null || true
+
+# 重新标记其他团队的文件夹
+for team in "${TEAM_FOLDERS[@]}"; do
+    if [ "$team" != "$MY_TEAM" ]; then
+        find "$team" -type f -exec git update-index --skip-worktree {} \; 2>/dev/null || true
+    fi
+done
+
+echo "✅ 已重新配置，当前追踪：$MY_TEAM/"

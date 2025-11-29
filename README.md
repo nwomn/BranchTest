@@ -167,12 +167,6 @@ git ls-files -v | grep ^S | cut -c3- | xargs git update-index --no-skip-worktree
 - `docs(teamA): 更新文档`
 - `refactor(teamB): 重构代码`
 
-## 🔐 代码审查
-
-所有修改都需要通过 Pull Request 提交。根据 CODEOWNERS 配置：
-- 修改 `teamA/` 的 PR 会自动指定 TeamA 负责人审查
-- 修改 `teamB/` 的 PR 会自动指定 TeamB 负责人审查
-
 ## ❓ 常见问题
 
 ### Q: 我克隆下来后能看到其他团队的文件夹吗？
@@ -228,7 +222,6 @@ find teamB -type f -exec git update-index --skip-worktree {} \;
 
 - [Git update-index 文档](https://git-scm.com/docs/git-update-index)
 - [Conventional Commits 规范](https://www.conventionalcommits.org/)
-- [GitHub CODEOWNERS 文档](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)
 
 ---
 

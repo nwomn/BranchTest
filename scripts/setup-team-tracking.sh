@@ -10,7 +10,7 @@ echo "===================================="
 echo ""
 echo "这个脚本会配置 Git，让你："
 echo "  ✅ 可以查看所有团队的文件夹"
-echo "  ✅ git pull 会拉取所有文件夹的更新"
+echo "  ✅ git sync 会拉取所有文件夹的更新"
 echo "  ✅ 但 git status 只显示你团队文件夹的修改"
 echo "  ✅ 防止误提交其他团队的代码"
 echo ""
@@ -18,33 +18,82 @@ echo ""
 # 检查是否在 Git 仓库中
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
     echo "❌ 错误：当前目录不是 Git 仓库"
-    echo "请先 cd 到 BranchTest 目录"
     exit 1
 fi
 
-# 获取所有团队文件夹
-TEAM_FOLDERS=($(ls -d */ 2>/dev/null | grep "^team" | sed 's|/||'))
+# 检查是否有已保存的团队文件夹配置
+TEAMS_CONFIG=".git/team-folders"
 
-if [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
-    echo "❌ 错误：未找到任何 team* 文件夹"
-    exit 1
+if [ -f "$TEAMS_CONFIG" ]; then
+    echo "检测到已有团队文件夹配置："
+    cat "$TEAMS_CONFIG" | while read folder; do
+        echo "  - $folder"
+    done
+    echo ""
+    read -p "是否使用此配置？(y/n，选 n 重新配置): " use_existing
+
+    if [ "$use_existing" = "y" ] || [ "$use_existing" = "Y" ]; then
+        TEAM_FOLDERS=($(cat "$TEAMS_CONFIG"))
+    fi
 fi
 
-echo "发现以下团队文件夹："
+# 如果没有配置，让用户选择团队文件夹
+if [ -z "$TEAM_FOLDERS" ] || [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
+    echo "请选择哪些文件夹是团队文件夹（每个团队负责一个文件夹）"
+    echo ""
+
+    # 获取所有顶级目录（排除常见的非团队目录）
+    ALL_DIRS=($(ls -d */ 2>/dev/null | sed 's|/||' | grep -v -E '^(\.git|node_modules|vendor|dist|build|target|\.idea|\.vscode|__pycache__|\.cache|scripts|hooks)$' || true))
+
+    if [ ${#ALL_DIRS[@]} -eq 0 ]; then
+        echo "❌ 错误：未找到任何文件夹"
+        echo "请先创建团队文件夹，例如："
+        echo "  mkdir frontend backend devops"
+        exit 1
+    fi
+
+    echo "发现以下文件夹："
+    for i in "${!ALL_DIRS[@]}"; do
+        echo "  $((i+1))) ${ALL_DIRS[$i]}"
+    done
+    echo ""
+    echo "请输入团队文件夹的编号（用空格分隔，例如: 1 2 3）"
+    read -p "> " choices
+
+    TEAM_FOLDERS=()
+    for choice in $choices; do
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le ${#ALL_DIRS[@]} ]; then
+            TEAM_FOLDERS+=("${ALL_DIRS[$((choice-1))]}")
+        fi
+    done
+
+    if [ ${#TEAM_FOLDERS[@]} -lt 2 ]; then
+        echo "❌ 错误：至少需要选择 2 个团队文件夹"
+        exit 1
+    fi
+
+    # 保存团队文件夹配置
+    printf "%s\n" "${TEAM_FOLDERS[@]}" > "$TEAMS_CONFIG"
+    echo ""
+    echo "✅ 已保存团队文件夹配置"
+fi
+
+echo ""
+echo "团队文件夹："
 for i in "${!TEAM_FOLDERS[@]}"; do
     echo "  $((i+1))) ${TEAM_FOLDERS[$i]}"
 done
 echo ""
 
-# 选择团队
-read -p "请输入你的团队编号 (1-${#TEAM_FOLDERS[@]}): " choice
+# 选择自己的团队
+read -p "请输入【你的团队】编号 (1-${#TEAM_FOLDERS[@]}): " my_choice
 
-if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt ${#TEAM_FOLDERS[@]} ]; then
+if ! [[ "$my_choice" =~ ^[0-9]+$ ]] || [ "$my_choice" -lt 1 ] || [ "$my_choice" -gt ${#TEAM_FOLDERS[@]} ]; then
     echo "❌ 无效的选项"
     exit 1
 fi
 
-MY_TEAM="${TEAM_FOLDERS[$((choice-1))]}"
+MY_TEAM="${TEAM_FOLDERS[$((my_choice-1))]}"
 echo ""
 echo "✅ 你选择了：$MY_TEAM"
 echo ""
@@ -52,7 +101,6 @@ echo ""
 # 首先清除所有 skip-worktree 标记
 echo "正在配置 Git 追踪设置..."
 echo "  🔄 清除之前的配置..."
-# 跨平台兼容：不使用 -r 选项，通过 if 判断处理空输入
 SKIP_FILES=$(git ls-files -v | grep ^S | cut -c3-)
 if [ -n "$SKIP_FILES" ]; then
     echo "$SKIP_FILES" | xargs git update-index --no-skip-worktree 2>/dev/null || true
@@ -68,7 +116,7 @@ for team in "${TEAM_FOLDERS[@]}"; do
     fi
 done
 
-# 保存团队配置
+# 保存我的团队配置
 echo "  💾 保存团队配置..."
 echo "$MY_TEAM" > .git/team-config
 

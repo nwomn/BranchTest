@@ -4,27 +4,21 @@
 
 # 检查是否有保存的团队配置
 TEAM_CONFIG=".git/team-config"
+TEAMS_CONFIG=".git/team-folders"
 
-if [ ! -f "$TEAM_CONFIG" ]; then
+if [ ! -f "$TEAM_CONFIG" ] || [ ! -f "$TEAMS_CONFIG" ]; then
     exit 0
 fi
 
-# 读取配置的团队
+# 读取配置
 MY_TEAM=$(cat "$TEAM_CONFIG")
+TEAM_FOLDERS=($(cat "$TEAMS_CONFIG"))
 
-if [ -z "$MY_TEAM" ]; then
-    exit 0
-fi
-
-# 获取所有团队文件夹
-TEAM_FOLDERS=($(ls -d */ 2>/dev/null | grep "^team" | sed 's|/||'))
-
-if [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
+if [ -z "$MY_TEAM" ] || [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
     exit 0
 fi
 
 # 清除所有 skip-worktree 标记
-# 跨平台兼容：不使用 -r 选项
 SKIP_FILES=$(git ls-files -v | grep ^S | cut -c3-)
 if [ -n "$SKIP_FILES" ]; then
     echo "$SKIP_FILES" | xargs git update-index --no-skip-worktree 2>/dev/null || true
@@ -32,7 +26,7 @@ fi
 
 # 重新标记其他团队的文件夹（包括新增的文件）
 for team in "${TEAM_FOLDERS[@]}"; do
-    if [ "$team" != "$MY_TEAM" ]; then
+    if [ "$team" != "$MY_TEAM" ] && [ -d "$team" ]; then
         find "$team" -type f -exec git update-index --skip-worktree {} \; 2>/dev/null || true
     fi
 done

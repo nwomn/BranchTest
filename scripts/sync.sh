@@ -4,6 +4,7 @@
 
 # 检查是否有保存的团队配置
 TEAM_CONFIG=".git/team-config"
+TEAMS_CONFIG=".git/team-folders"
 
 if [ ! -f "$TEAM_CONFIG" ]; then
     echo "❌ 错误：未找到团队配置"
@@ -11,8 +12,15 @@ if [ ! -f "$TEAM_CONFIG" ]; then
     exit 1
 fi
 
-# 读取配置的团队
+if [ ! -f "$TEAMS_CONFIG" ]; then
+    echo "❌ 错误：未找到团队文件夹配置"
+    echo "请先运行：bash scripts/setup-team-tracking.sh"
+    exit 1
+fi
+
+# 读取配置
 MY_TEAM=$(cat "$TEAM_CONFIG")
+TEAM_FOLDERS=($(cat "$TEAMS_CONFIG"))
 
 if [ -z "$MY_TEAM" ]; then
     echo "❌ 错误：团队配置为空"
@@ -22,17 +30,9 @@ fi
 
 echo "🔄 同步中... (你的团队: $MY_TEAM)"
 
-# 获取所有团队文件夹
-TEAM_FOLDERS=($(ls -d */ 2>/dev/null | grep "^team" | sed 's|/||'))
-
-if [ ${#TEAM_FOLDERS[@]} -eq 0 ]; then
-    echo "❌ 错误：未找到任何 team* 文件夹"
-    exit 1
-fi
-
-# 【关键修复】在 pull 之前，恢复其他团队文件夹到 HEAD 版本
+# 在 pull 之前，恢复其他团队文件夹到 HEAD 版本
 for team in "${TEAM_FOLDERS[@]}"; do
-    if [ "$team" != "$MY_TEAM" ]; then
+    if [ "$team" != "$MY_TEAM" ] && [ -d "$team" ]; then
         # 1. 先清除该文件夹所有文件的 skip-worktree 标记
         find "$team" -type f -exec git update-index --no-skip-worktree {} \; 2>/dev/null || true
 
